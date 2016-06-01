@@ -1,8 +1,3 @@
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,27 +73,6 @@ public class Individual implements Serializable{
 	
 	public void addChildren(Individual child) {
 		this.children.add(child);
-	}
-	
-	public void writeToFile(String filename)throws IOException{
-		FileOutputStream fout = new FileOutputStream("address.ser");
-		ObjectOutputStream oos = new ObjectOutputStream(fout);   
-		oos.writeObject(this);
-		oos.close();
-	}
-	
-	public Individual readFromFile(String filename)throws IOException{
-		FileInputStream fin = new FileInputStream("address.ser");
-		ObjectInputStream ois = new ObjectInputStream(fin);
-		Individual root = null;
-		try{
-		   root = (Individual) ois.readObject();
-		}catch(ClassNotFoundException cnf){
-		   System.out.println("Class Not Found");
-		}finally{
-		   ois.close();
-		}
-		return root;
 	}
 	
 	@Override

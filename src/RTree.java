@@ -1,13 +1,30 @@
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.Scene;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
-public class RTree {
+public class RTree extends Application{
+	private static Individual root;
+	
 	public static void main(String args[])throws IOException{
-		Individual root = setTree();
+		
+		root = readFromFile("address.ser");
+		
 		printTree(root,"");
-		//example
+		
+		launch(args);
 	}
 	
 	public static Individual setTree(){
@@ -59,5 +76,71 @@ public class RTree {
 				printTree(chit.next(),prefix+(prefix.length()==0?"":(root.isLast()?"":"│"))+"     ");
 			}
 		}
+	}
+
+	public static void writeToFile(Individual root,String filename) throws IOException{
+		FileOutputStream fout = new FileOutputStream(filename);
+		ObjectOutputStream oos = new ObjectOutputStream(fout);   
+		oos.writeObject(root);
+		oos.close();
+	}
+	
+	public static Individual readFromFile(String filename) throws IOException{
+		Individual root = null;
+		FileInputStream fin = new FileInputStream(filename);
+		ObjectInputStream ois = new ObjectInputStream(fin);
+		try {
+			root = (Individual) ois.readObject();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			ois.close();
+		}
+		return root;
+	}
+
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public void start(Stage stage) throws Exception {
+		// TODO Auto-generated method stub
+		stage.setTitle("Family Tree for "+root.getName());
+		
+		TreeView<Individual> tree= new TreeView<Individual>(populate(root));
+		tree.setShowRoot(true);	
+		tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
+
+			@Override
+			public void changed(ObservableValue arg0, Object oldValue, Object newValue) {
+				// TODO Auto-generated method stub
+				TreeItem<Individual> selectedItem = (TreeItem<Individual>) newValue;
+	            DetailsDialog.display(selectedItem.getValue());
+			}
+		});
+		
+		StackPane layout = new StackPane();
+		layout.getChildren().add(tree);
+		Scene scene = new Scene(layout, 350, 400);
+		stage.setScene(scene);
+		stage.show();
+	}
+	
+	public static TreeItem<Individual> populate(Individual rootnode){
+		TreeItem<Individual> rootitem,child;
+		
+		rootitem = new TreeItem<>(rootnode);
+		rootitem.setExpanded(true);
+		
+		if(rootnode.getChildren()!=null){
+			List<Individual> childs = rootnode.getChildren();
+			Iterator<Individual> chit = childs.iterator();
+			while(chit.hasNext()){
+				child = populate(chit.next());
+				child.setExpanded(false);
+				rootitem.getChildren().add(child);
+			}
+		}
+		return rootitem;
 	}
 }
