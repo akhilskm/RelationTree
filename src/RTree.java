@@ -9,14 +9,21 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class RTree extends Application{
 	private static Individual root;
+	private TreeView<Individual> tree;
 	
 	public static void main(String args[])throws IOException{
 		
@@ -100,27 +107,91 @@ public class RTree extends Application{
 		return root;
 	}
 
-	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void start(Stage stage) throws Exception {
 		// TODO Auto-generated method stub
 		stage.setTitle("Family Tree for "+root.getName());
 		
-		TreeView<Individual> tree= new TreeView<Individual>(populate(root));
+		Button addChildButton = new Button("Add Child");
+		final Button addParentButton = new Button("Add Parent");
+		addParentButton.setDisable(true);
+		
+		tree = new TreeView<Individual>(populate(root));
 		tree.setShowRoot(true);	
 		tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
 
 			@Override
 			public void changed(ObservableValue arg0, Object oldValue, Object newValue) {
 				// TODO Auto-generated method stub
-				TreeItem<Individual> selectedItem = (TreeItem<Individual>) newValue;
-	            DetailsDialog.display(selectedItem.getValue());
+				if(newValue!=null){
+					TreeItem<Individual> selectedItem = (TreeItem<Individual>) newValue;
+					if(selectedItem.getValue() == root){
+						addParentButton.setDisable(false);
+					}
+					else{
+						addParentButton.setDisable(true);
+					}
+				}
+			}
+		});
+
+		Button detailsButton = new Button("Details");
+		detailsButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
+					DetailsDialog.display(tree.getSelectionModel().selectedItemProperty().getValue().getValue());
+					tree.getSelectionModel().selectedItemProperty().getValue().setExpanded(!tree.getSelectionModel().selectedItemProperty().getValue().isExpanded());
+					tree.getSelectionModel().selectedItemProperty().getValue().setExpanded(!tree.getSelectionModel().selectedItemProperty().getValue().isExpanded());
+				}
 			}
 		});
 		
-		StackPane layout = new StackPane();
-		layout.getChildren().add(tree);
+		addChildButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
+					Individual parent = tree.getSelectionModel().selectedItemProperty().getValue().getValue();
+					Individual newChild = new Individual("New Child",true,parent,null,null);
+					parent.addChildren(newChild);
+					tree.getSelectionModel().selectedItemProperty().getValue().getChildren().add(new TreeItem<Individual>(newChild));
+				}
+			}
+		});
+		
+		addParentButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
+					Individual person = tree.getSelectionModel().selectedItemProperty().getValue().getValue();
+					Individual newparent = new Individual("New Parent",true,null,null,Arrays.asList(person));
+					person.setParent(newparent);
+					TreeItem<Individual> parentItem = new TreeItem<Individual>(newparent);
+					parentItem.getChildren().add(tree.getSelectionModel().getSelectedItem());
+					parentItem.setExpanded(true);
+					tree.setRoot(parentItem);
+				}
+			}
+		});
+		
+		Button saveButton = new Button("Save");
+		
+		BorderPane layout = new BorderPane();
+		layout.setCenter(tree);
+		HBox options = new HBox();
+		options.setAlignment(Pos.CENTER);
+		options.setPadding(new Insets(10,10,10,10));
+		options.setSpacing(20);
+		options.getChildren().addAll(addParentButton, addChildButton, detailsButton,saveButton);
+		layout.setBottom(options);
+		
 		Scene scene = new Scene(layout, 350, 400);
 		stage.setScene(scene);
 		stage.show();

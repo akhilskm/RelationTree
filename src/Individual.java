@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("serial")
@@ -68,11 +69,22 @@ public class Individual implements Serializable{
 	
 	public void addChildren(Individual[] children) {
 		for(Individual y:children)
-			this.children.add(y);
+			addChildren(y);
 	}
 	
 	public void addChildren(Individual child) {
-		this.children.add(child);
+		if(children==null){
+			setChildren(Arrays.asList(child));
+		}
+		else{
+			Individual[] origChildren = (Individual[]) children.toArray();
+			Individual[] newChildren = new Individual[origChildren.length+1];
+			for(int i = 0;i<origChildren.length;i++){
+				newChildren[i]=origChildren[i];
+			}
+			newChildren[origChildren.length]=child;
+			setChildren(Arrays.asList(newChildren));
+		}
 	}
 	
 	@Override
