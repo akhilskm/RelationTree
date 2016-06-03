@@ -1,12 +1,7 @@
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -21,101 +16,22 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-public class RTree extends Application{
-	private static Individual root;
+public class RTree{
+
 	private TreeView<Individual> tree;
+	private Individual root;
 	
-	public static void main(String args[])throws IOException{
-		
-		root = readFromFile("address.ser");
-		
-		printTree(root,"");
-		
-		launch(args);
-	}
-	
-	public static Individual setTree(){
-		Individual narayanan = new Individual("Narayanan", true, null, null, null);
-		narayanan.setLast(true);
-		
-		Individual narasimhan = new Individual("Narasimhan", true, narayanan, null, null);
-		Individual madhavan = new Individual("Madhavan", true, narayanan, null, null);
-		Individual sathi = new Individual("Sathi", false, narayanan, null, null);
-		Individual sankaran = new Individual("Sankaran", true, narayanan, null, null);
-		Individual vamanan = new Individual("Vamanan", true, narayanan, null, null);
-		vamanan.setLast(true);		
-		narayanan.setChildren(Arrays.asList(narasimhan,madhavan,sathi,sankaran,vamanan));
-		
-		Individual sreekanth = new Individual("Sreekanth", true, narasimhan, null, null);
-		Individual sreeja = new Individual("Sreeja", false, narasimhan, null, null);
-		sreeja.setLast(true);		
-		narasimhan.setChildren(Arrays.asList(sreekanth,sreeja));
-		
-		Individual kartika = new Individual("Kartika", false, sathi, null, null);
-		Individual manu = new Individual("Manu", true, sathi, null, null);
-		manu.setLast(true);		
-		sathi.setChildren(Arrays.asList(kartika,manu));
-		
-		Individual akhil = new Individual("Akhil", true, madhavan, null, null);
-		Individual hari = new Individual("Hari", true, madhavan, null, null);
-		Individual saranya = new Individual("Saranya", false, madhavan, null, null);
-		saranya.setLast(true);		
-		madhavan.setChildren(Arrays.asList(akhil,hari,saranya));
-		
-		Individual kichu = new Individual("Kichu", true, sankaran, null, null);
-		Individual achu = new Individual("Achu", true, sankaran, null, null);
-		achu.setLast(true);
-		sankaran.setChildren(Arrays.asList(kichu,achu));
-		
-		Individual udhav = new Individual("Udhav", true, vamanan, null, null);
-		udhav.setLast(true);
-		vamanan.setChildren(Arrays.asList(udhav));
-		
-		return narayanan;
-	}
-	
-	public static void printTree(Individual root,String prefix){
-		System.out.println((prefix.length()==0?"":(prefix + (root.isLast()?"└── " : "├── ")))+root.getName());
-		if(root.getChildren()!=null){
-			List<Individual> childs = root.getChildren();
-			Iterator<Individual> chit = childs.iterator();
-			while(chit.hasNext()){
-				printTree(chit.next(),prefix+(prefix.length()==0?"":(root.isLast()?"":"│"))+"     ");
-			}
-		}
-	}
-
-	public static void writeToFile(Individual root,String filename) throws IOException{
-		FileOutputStream fout = new FileOutputStream(filename);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);   
-		oos.writeObject(root);
-		oos.close();
-	}
-	
-	public static Individual readFromFile(String filename) throws IOException{
-		Individual root = null;
-		FileInputStream fin = new FileInputStream(filename);
-		ObjectInputStream ois = new ObjectInputStream(fin);
-		try {
-			root = (Individual) ois.readObject();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally{
-			ois.close();
-		}
-		return root;
-	}
-
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public void start(Stage stage) throws Exception {
+	public void mainstage(final Stage stage, Individual rootnode) throws Exception {
 		// TODO Auto-generated method stub
-		stage.setTitle("Family Tree for "+root.getName());
+		root = rootnode;
+		
+		stage.setTitle("Family Tree for "+root.getIllam());
 		
 		Button addChildButton = new Button("Add Child");
 		final Button addParentButton = new Button("Add Parent");
 		addParentButton.setDisable(true);
+		final Button deleteButton = new Button("Delete");
 		
 		tree = new TreeView<Individual>(populate(root));
 		tree.setShowRoot(true);	
@@ -128,9 +44,11 @@ public class RTree extends Application{
 					TreeItem<Individual> selectedItem = (TreeItem<Individual>) newValue;
 					if(selectedItem.getValue() == root){
 						addParentButton.setDisable(false);
+						deleteButton.setDisable(true);
 					}
 					else{
 						addParentButton.setDisable(true);
+						deleteButton.setDisable(false);
 					}
 				}
 			}
@@ -143,7 +61,13 @@ public class RTree extends Application{
 			public void handle(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
-					DetailsDialog.display(tree.getSelectionModel().selectedItemProperty().getValue().getValue());
+					try {
+						System.out.println(tree.getSelectionModel().getSelectedItem().getValue().getInfo());
+						DetailsDialog.display(tree.getSelectionModel().selectedItemProperty().getValue().getValue());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					tree.getSelectionModel().selectedItemProperty().getValue().setExpanded(!tree.getSelectionModel().selectedItemProperty().getValue().isExpanded());
 					tree.getSelectionModel().selectedItemProperty().getValue().setExpanded(!tree.getSelectionModel().selectedItemProperty().getValue().isExpanded());
 				}
@@ -157,8 +81,14 @@ public class RTree extends Application{
 				// TODO Auto-generated method stub
 				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
 					Individual parent = tree.getSelectionModel().selectedItemProperty().getValue().getValue();
-					Individual newChild = new Individual("New Child",true,parent,null,null);
+					Individual newChild = new Individual("New Child",true,parent.getIllam(),parent,null,null);
 					parent.addChildren(newChild);
+					try {
+						DetailsDialog.display(newChild);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					tree.getSelectionModel().selectedItemProperty().getValue().getChildren().add(new TreeItem<Individual>(newChild));
 				}
 			}
@@ -171,28 +101,71 @@ public class RTree extends Application{
 				// TODO Auto-generated method stub
 				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
 					Individual person = tree.getSelectionModel().selectedItemProperty().getValue().getValue();
-					Individual newparent = new Individual("New Parent",true,null,null,Arrays.asList(person));
+					Individual newparent = new Individual("New Parent",true,person.getIllam(),null,null,Arrays.asList(person));
 					person.setParent(newparent);
+					try {
+						DetailsDialog.display(newparent);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					TreeItem<Individual> parentItem = new TreeItem<Individual>(newparent);
 					parentItem.getChildren().add(tree.getSelectionModel().getSelectedItem());
 					parentItem.setExpanded(true);
 					tree.setRoot(parentItem);
+					root = newparent;
+					stage.setTitle("Family Tree for "+root.getName());
 				}
 			}
 		});
 		
+		deleteButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				TreeItem<Individual> selectedItem = tree.getSelectionModel().getSelectedItem();
+				if(selectedItem!=null){
+					Individual selected = tree.getSelectionModel().getSelectedItem().getValue();
+					Individual parent = selected.getParent();
+					if(selected.isLast()){
+						int index = parent.getChildren().indexOf(selected);
+						if(index>0)
+							parent.getChildren().get(index-1).setLast(true);
+					}
+					parent.removeChild(selected);
+					selected=null;
+					selectedItem.getParent().getChildren().remove(selectedItem);
+				}
+				
+			}
+		});
+		
 		Button saveButton = new Button("Save");
+		saveButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				try {
+					RunProgram.writeToFile(root, "address.ser");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
 		
 		BorderPane layout = new BorderPane();
 		layout.setCenter(tree);
 		HBox options = new HBox();
 		options.setAlignment(Pos.CENTER);
-		options.setPadding(new Insets(10,10,10,10));
-		options.setSpacing(20);
-		options.getChildren().addAll(addParentButton, addChildButton, detailsButton,saveButton);
+		options.setPadding(new Insets(5,5,5,5));
+		options.setSpacing(10);
+		options.getChildren().addAll(addParentButton, addChildButton, detailsButton, deleteButton, saveButton);
 		layout.setBottom(options);
 		
-		Scene scene = new Scene(layout, 350, 400);
+		Scene scene = new Scene(layout, 400, 400);
 		stage.setScene(scene);
 		stage.show();
 	}

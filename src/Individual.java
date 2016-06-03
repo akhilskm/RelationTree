@@ -10,11 +10,13 @@ public class Individual implements Serializable{
 	private Individual parent;
 	private List<Individual> children;
 	private Individual spouse;
+	private String illam;
 	private boolean isLast=false;
 	
-	public Individual(String name, boolean genderMale, Individual parent, Individual spouse, List<Individual> children) {
+	public Individual(String name, boolean genderMale, String illam, Individual parent, Individual spouse, List<Individual> children) {
 		this.name = name;
 		this.genderMale = genderMale;
+		this.illam = illam;
 		this.parent = parent;
 		this.children = children;
 		this.spouse = spouse;
@@ -23,8 +25,18 @@ public class Individual implements Serializable{
 	public Individual(){
 		this.name = "";
 		this.genderMale = true;
+		this.illam = "";
 		this.parent = null;
+		this.spouse = null;
 		this.children = new ArrayList<Individual>();
+	}
+
+	public String getIllam() {
+		return illam;
+	}
+
+	public void setIllam(String illam) {
+		this.illam = illam;
 	}
 
 	public boolean isLast() {
@@ -72,6 +84,15 @@ public class Individual implements Serializable{
 			addChildren(y);
 	}
 	
+	public void removeChild(Individual child){
+		List<Individual> existing = getChildren();
+		setChildren(null);
+		for(Individual y : existing){
+			if(y!=child)
+				addChildren(y);
+		}
+	}
+	
 	public void addChildren(Individual child) {
 		if(children==null){
 			setChildren(Arrays.asList(child));
@@ -98,6 +119,24 @@ public class Individual implements Serializable{
 
 	public void setSpouse(Individual spouse) {
 		this.spouse = spouse;
+	}
+	
+	public Individual getRoot(){
+		if(parent==null)
+			return this;
+		else
+			return parent.getRoot();
+	}
+
+	public String getInfo(){
+		String info = "Name : "+name;
+		info+="\nIllam : "+illam;
+		info+="\nGender : "+(genderMale?"Male":"Female");
+		info+="\nParent : "+(parent==null?"NA":parent.toString());
+		info+="\nChildren : "+(children==null?"Nil":children.toString());
+		info+="\n"+(genderMale?"Wife":"Husband")+" : "+(spouse==null?"Nil":spouse.toString());
+		info+="\nRoot : "+getRoot();		
+		return info;
 	}
 }
 
