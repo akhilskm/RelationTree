@@ -17,7 +17,7 @@ public class RunProgram extends Application{
 		Individual narayanan = new Individual("Narayanan", true, "Kallamvelli Illam", null, null, null);
 		narayanan.setLast(true);
 		
-		Individual narasimhan = new Individual("Narasimhan", true, "Kallamvelli Illam", narayanan, null, null);
+		Individual narasimhan = new Individual("Hari", true, "Kallamvelli Illam", narayanan, null, null);
 		Individual madhavan = new Individual("Madhavan", true, "Kallamvelli Illam", narayanan, null, null);
 		Individual sathi = new Individual("Sathi", false, "Kallamvelli Illam", narayanan, null, null);
 		Individual sankaran = new Individual("Sankaran", true, "Kallamvelli Illam", narayanan, null, null);

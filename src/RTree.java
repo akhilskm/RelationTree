@@ -14,6 +14,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class RTree{
@@ -62,7 +63,7 @@ public class RTree{
 				// TODO Auto-generated method stub
 				if(tree.getSelectionModel().selectedItemProperty().getValue()!=null){
 					try {
-						System.out.println(tree.getSelectionModel().getSelectedItem().getValue().getInfo());
+						//System.out.println(tree.getSelectionModel().getSelectedItem().getValue().getInfo());
 						DetailsDialog.display(tree.getSelectionModel().selectedItemProperty().getValue().getValue());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -83,6 +84,7 @@ public class RTree{
 					Individual parent = tree.getSelectionModel().selectedItemProperty().getValue().getValue();
 					Individual newChild = new Individual("New Child",true,parent.getIllam(),parent,null,null);
 					parent.addChildren(newChild);
+					parent.getSpouse().addChildren(newChild);
 					try {
 						DetailsDialog.display(newChild);
 					} catch (IOException e) {
@@ -156,14 +158,34 @@ public class RTree{
 			}
 		});
 		
+		Button find = new Button("Search");
+		find.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				String s = DetailsDialog.inputDialog("Enter Search Key");
+				if(s.length()>0)
+					TraverseTree.search(s, root);
+			}
+		});
 		BorderPane layout = new BorderPane();
 		layout.setCenter(tree);
 		HBox options = new HBox();
 		options.setAlignment(Pos.CENTER);
 		options.setPadding(new Insets(5,5,5,5));
 		options.setSpacing(10);
-		options.getChildren().addAll(addParentButton, addChildButton, detailsButton, deleteButton, saveButton);
-		layout.setBottom(options);
+		options.getChildren().addAll(addParentButton, addChildButton, detailsButton);
+		HBox moreoptions = new HBox();
+		moreoptions.setAlignment(Pos.CENTER);
+		moreoptions.setPadding(new Insets(5,5,5,5));
+		moreoptions.setSpacing(10);
+		moreoptions.getChildren().addAll(deleteButton, saveButton, find);
+		VBox box = new VBox();
+		box.setAlignment(Pos.CENTER);
+		box.setSpacing(10);
+		box.getChildren().addAll(options,moreoptions);
+		layout.setBottom(box);
 		
 		Scene scene = new Scene(layout, 400, 400);
 		stage.setScene(scene);
